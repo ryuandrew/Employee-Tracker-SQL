@@ -1,12 +1,12 @@
 // start the app
-    // options    
+    // list
         // view all departments, view all roles, view all employees, 
         // add a department, add a role, add an employee, and update an employee role
     // when selected: 
         // when all departments is selected
             // table: 
+                // id
                 // department names, 
-                // department id's
         // when all roles is selected
             // table: 
                 // job title, 
@@ -26,10 +26,10 @@
             // prompt: enter the name of the department. 
             // Then the department is added to the database
         // add a role
-            // prompt: enter the name, salary, and department for the role. 
+            // prompt: enter the name, salary, and department(TABLE) for the role. 
             // Then the role is added to the database
         // add an employee
-            // prompt: enter the employee's first name, last name, role, and manager.
+            // prompt: enter the employee's first name, last name, role(TABLE), and manager(TABLE).
             // Then the employee is added
         // update an employee role
             // prompt: select an employee to update and their new role.
@@ -93,19 +93,41 @@ const firstQuestion = ()=>{
 
 // enable asynchronous, promise-based behavior
 const viewAllDepartments = async ()=>{
-    const res = await db.promise().query("SELECT * FROM department")
+    const res = await db.promise().query(`SELECT * FROM department`)
         console.table(res[0]); // need first set of arrays that contains data, not the buffer
     firstQuestion()
 }
 
 const viewAllRoles = async ()=>{
-    const res = await db.promise().query("SELECT title, job_roles.id, department_name, salary FROM job_roles LEFT JOIN department ON department.id = job_roles.department_id;")
+    const res = await db.promise().query(`
+        SELECT  title, 
+                J.id, 
+                department_name, 
+                salary 
+        FROM job_roles J 
+            LEFT JOIN department D 
+                ON D.id = J.department_id
+        ;`)
         console.table(res[0]);
     firstQuestion()
 }
 
 const viewAllEmployees = async ()=>{
-    const res = await db.promise().query("SELECT employee.first_name, employee.last_name, job_roles.title, department.department_name, job_roles.salary, manager.last_name as manager FROM employee LEFT JOIN job_roles ON employee.employee_role_id = job_roles.id LEFT JOIN department ON job_roles.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id;")
+    const res = await db.promise().query(`
+        SELECT  E.first_name, 
+                E.last_name, 
+                J.title, 
+                D.department_name, 
+                J.salary, 
+                M.last_name AS manager 
+        FROM employee E
+            LEFT JOIN job_roles J
+                ON E.employee_role_id = J.id
+            LEFT JOIN department D
+                ON J.department_id = D.id
+            LEFT JOIN employee M 
+                ON E.manager_id = M.id
+    ;`)
         console.table(res[0]);
     firstQuestion()
 }
@@ -151,7 +173,7 @@ const addRole = async ()=>{
 }
 
 const addEmployee = async ()=>{
-    const allRoles = await db.promise().query(`SELECT title as name, id AS value FROM job_roles`)
+    const allRoles = await db.promise().query(`SELECT title AS name, id AS value FROM job_roles`)
     const allEmployees = await db.promise().query(`SELECT last_name AS name, id AS value FROM employee`)
     inquirer.prompt([
         {
@@ -184,7 +206,7 @@ const addEmployee = async ()=>{
 }
 
 const updateEmployeeRole = async ()=>{
-    const allRoles = await db.promise().query(`SELECT title as name, id AS value FROM job_roles`)
+    const allRoles = await db.promise().query(`SELECT title AS name, id AS value FROM job_roles`)
     const allEmployees = await db.promise().query(`SELECT last_name AS name, id AS value FROM employee`)
     inquirer.prompt([
         {
